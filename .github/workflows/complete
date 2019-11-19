@@ -64,3 +64,7 @@ ggmaplot(res4, main = expression("baseMean" %->% "log2FoldChange"),
          font.main = "bold",
          ggtheme = ggplot2::theme_minimal())
 maPlot(baseMean, log2FoldChange, logAbundance=NULL, logFC=NULL, normalize=FALSE, plot.it=TRUE, smearWidth=1, col=NULL, allCol="black", lowCol="orange", deCol="red", de.tags=NULL, smooth.scatter=FALSE, lowess=FALSE)
+library(ggplot2)
+load ("baseMean/res4.rda")
+ggplot(data = res4, aes(x = baseMean, y = log2FoldChange )) +
+  geom_point()
