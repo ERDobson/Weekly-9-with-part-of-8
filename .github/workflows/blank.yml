@@ -1,0 +1,66 @@
+mycounts <- read_csv("~/WA8_data/WA_counts.csv") 
+metadata <- read_csv("~/WA8_data/WA8_Metadata.csv")
+head(mycounts)
+head(metadata)
+class(mycounts)
+mycounts <- as.data.frame(mycounts)
+metadata <- as.data.frame(metadata)
+names(mycounts)[-1]
+metadata$id
+names(mycounts)[-1]==metadata$id
+all(names(mycounts)[-1]==metadata$id)
+dds.data <- DESeqDataSetFromMatrix(countData=mycounts, 
+                                   colData=metadata, 
+                                   design=~dex, 
+                                   tidy=TRUE)
+dds.data
+dds <- DESeq(dds.data)
+res <- results(dds, contrast=c("dex","Control","Mutant"), tidy=TRUE)
+
+res <- tbl_df(res)
+res
+res2 <- arrange(res, padj)
+res3 <- filter(res2, padj<=0.05 & log2FoldChange>=2)
+res4 <- filter(res2, padj<=0.05 & log2FoldChange<=-2)
+plotCounts(dds, gene="Solyc00g005000.2.1", intgroup="dex", returnData=TRUE)%>%
+  ggplot(aes(dex,count))+
+  geom_boxplot(aes(fill=dex))+
+  scale_y_log10() + 
+  ggtitle("Solyc00g005000.2.1") 
+rld=rlog(dds)
+plotPCA(rld, intgroup = "dex")
+pcaData <- plotPCA(rld, intgroup=c("dex"), returnData=TRUE)
+percentVar <- round(100 * attr(pcaData, "percentVar"))
+ggplot(pcaData, aes(PC1, PC2, color=dex, shape=dex)) +
+  geom_point(size=3) +
+  xlab(paste0("PC1: ",percentVar[1],"% variance")) +
+  ylab(paste0("PC2: ",percentVar[2],"% variance")) + 
+  coord_fixed()+
+  theme_bw()
+res=mutate(res,significance=ifelse(padj<0.05,"Significant","Non-significant"))
+ggplot(res)+
+  geom_point(aes(x=log2FoldChange, y=padj))
+ggplot(res) +
+  geom_point(aes(x=log2FoldChange, y=-log10(padj), colour=significance)) +
+  ggtitle("Control versus Mutant") +
+  xlab("log2 fold change") + 
+  ylab("-log10 adjusted p-value") +
+  #scale_y_continuous(limits = c(0,50)) +
+  theme(legend.position = "none",
+        plot.title = element_text(size = rel(1.5), hjust = 0.5),
+        axis.title = element_text(size = rel(1.25)))  +
+  theme_bw()
+plotCounts(dds, gene="Solyc09g089500.2.1", intgroup="dex")
+plotCounts(dds, gene="Solyc11g028040.1.1", intgroup="dex", returnData=TRUE) %>%
+  ggplot(aes(dex,count))+
+  geom_boxplot()
+ggmaplot(res4, main = expression("baseMean" %->% "log2FoldChange"),
+         fdr = 0.05, fc = 2, size = 0.4,
+         palette = c("#B31B21", "#1465AC", "darkgray"),
+         genenames = as.vector(diff_express$name),
+         legend = "top", top = 20,
+         font.label = c("bold", 11),
+         font.legend = "bold",
+         font.main = "bold",
+         ggtheme = ggplot2::theme_minimal())
+maPlot(baseMean, log2FoldChange, logAbundance=NULL, logFC=NULL, normalize=FALSE, plot.it=TRUE, smearWidth=1, col=NULL, allCol="black", lowCol="orange", deCol="red", de.tags=NULL, smooth.scatter=FALSE, lowess=FALSE)
